@@ -1,7 +1,12 @@
 package in.reqres;
 
+import com.fasterxml.jackson.databind.JavaType;
+import com.fasterxml.jackson.databind.type.TypeFactory;
 import com.google.common.collect.Comparators;
-import in.reqres.dto.*;
+import in.reqres.dto.ColorStyle;
+import in.reqres.dto.LogIn;
+import in.reqres.dto.Resource;
+import in.reqres.dto.UserData;
 import org.testng.Assert;
 import org.testng.annotations.Test;
 
@@ -19,14 +24,16 @@ import static org.hamcrest.Matchers.*;
 public class ApiTests {
     @Test
     public void checkUniqueAvatarFileNames() {
-        ResourceUserData resource =
+        JavaType type = TypeFactory.defaultInstance()
+                .constructParametricType(Resource.class, UserData.class);
+        Resource<UserData> resource =
                 given()
                         .contentType("application/json")
                         .when()
                         .get("https://reqres.in/api/users?page=2")
                         .then()
                         .statusCode(200)
-                        .extract().body().as(ResourceUserData.class);
+                        .extract().body().as(type);
         Set<String> uniqueAvatarFileNames = resource.getData().stream()
                 .map(UserData::getAvatar)
                 .map(ava -> ava.replaceAll("^.+/|\\..+", ""))
@@ -37,13 +44,15 @@ public class ApiTests {
 
     @Test
     public void avatarFileNamesNotUnique() {
-        ResourceUserData resource =
+        JavaType type = TypeFactory.defaultInstance()
+                .constructParametricType(Resource.class, UserData.class);
+        Resource<UserData> resource =
                 given()
                         .when()
                         .get("https://reqres.in/api/users?page=2")
                         .then()
                         .statusCode(200)
-                        .extract().body().as(ResourceUserData.class);
+                        .extract().body().as(type);
         List<UserData> notUniqueList = resource.getData();
         Assert.assertTrue(notUniqueList.size() > 1,
                 "Чтобы проверять объекты на (не)уникальность, их должно быть больше 1");
@@ -82,14 +91,16 @@ public class ApiTests {
 
     @Test
     public void resourceSortedByYears() {
-        List<ColorStyle> colorStyles =
+        JavaType type = TypeFactory.defaultInstance()
+                .constructParametricType(Resource.class, ColorStyle.class);
+        Resource<ColorStyle> resource =
                 given()
                         .when()
                         .get("https://reqres.in/api/unknown")
                         .then()
                         .assertThat().statusCode(200).and().body("data.year", not(hasItem(nullValue())))
-                        .extract().body().as(ResourceColorStyle.class).getData();
-        boolean isInOrder = Comparators.isInOrder(colorStyles, Comparator.comparingLong(ColorStyle::getYear));
+                        .extract().body().as(type);
+        boolean isInOrder = Comparators.isInOrder(resource.getData(), Comparator.comparingLong(ColorStyle::getYear));
         Assert.assertTrue(isInOrder);
     }
 

@@ -1,22 +1,33 @@
 package in.reqres.dto;
 
-public class Resource {
+import java.util.List;
+
+public class Resource<E> {
     private Integer page;
     private Integer per_page;
     private Integer total;
     private Integer total_pages;
     private Support support;
+    private List<E> data;
 
-    public Resource(Integer page, Integer per_page, Integer total, Integer total_pages, Support support) {
+    public Resource() {
+    }
+
+    public Resource(Integer page, Integer per_page, Integer total, Integer total_pages, Support support, List<E> data) {
         this.page = page;
         this.per_page = per_page;
         this.total = total;
         this.total_pages = total_pages;
         this.support = support;
+        this.data = data;
     }
 
-    public Resource() {
-        super();
+    public List<E> getData() {
+        return data;
+    }
+
+    public void setData(List<E> data) {
+        this.data = data;
     }
 
     public Integer getPage() {
