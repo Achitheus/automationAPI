@@ -7,7 +7,9 @@ import in.reqres.dto.ColorStyle;
 import in.reqres.dto.LogIn;
 import in.reqres.dto.Resource;
 import in.reqres.dto.UserData;
+import io.qameta.allure.Step;
 import org.testng.Assert;
+import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.Test;
 
 import java.util.Comparator;
@@ -18,22 +20,29 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
+import static in.reqres.specifications.Specification.*;
 import static io.restassured.RestAssured.given;
 import static org.hamcrest.Matchers.*;
 
 public class ApiTests {
+    @BeforeMethod
+    public void beforeEach() {
+        deleteSpec();
+    }
+
     @Test
     public void checkUniqueAvatarFileNames() {
         JavaType type = TypeFactory.defaultInstance()
                 .constructParametricType(Resource.class, UserData.class);
         Resource<UserData> resource =
                 given()
-                        .contentType("application/json")
+                        .spec(requestSpec())
                         .when()
-                        .get("https://reqres.in/api/users?page=2")
+                        .get("api/users?page=2")
                         .then()
-                        .statusCode(200)
+                        .spec(responseSpec())
                         .extract().body().as(type);
+
         Set<String> uniqueAvatarFileNames = resource.getData().stream()
                 .map(UserData::getAvatar)
                 .map(ava -> ava.replaceAll("^.+/|\\..+", ""))
@@ -44,15 +53,17 @@ public class ApiTests {
 
     @Test
     public void avatarFileNamesNotUnique() {
+        installSpec(requestSpec(), responseSpec());
         JavaType type = TypeFactory.defaultInstance()
                 .constructParametricType(Resource.class, UserData.class);
+
         Resource<UserData> resource =
                 given()
                         .when()
-                        .get("https://reqres.in/api/users?page=2")
+                        .get("api/users?page=2")
                         .then()
-                        .statusCode(200)
                         .extract().body().as(type);
+
         List<UserData> notUniqueList = resource.getData();
         Assert.assertTrue(notUniqueList.size() > 1,
                 "Чтобы проверять объекты на (не)уникальность, их должно быть больше 1");
@@ -67,38 +78,39 @@ public class ApiTests {
 
     @Test
     public void successfulAuthorization() {
+        installSpec(requestSpec(), responseSpec());
         LogIn login = new LogIn("eve.holt@reqres.in", "cityslicka");
         given()
-                .contentType("application/json")
                 .body(login)
                 .when()
-                .post("https://reqres.in/api/login")
+                .post("api/login")
                 .then()
-                .assertThat().statusCode(200).and().body("token", not(emptyOrNullString()));
+                .assertThat().body("token", not(emptyOrNullString()));
     }
 
     @Test
     public void unsuccessfulAuthorization() {
+        installSpec(requestSpec());
         LogIn login = new LogIn("eve.holt@reqres.in", "");
         given()
-                .contentType("application/json")
                 .body(login)
                 .when()
-                .post("https://reqres.in/api/login")
+                .post("api/login")
                 .then()
                 .assertThat().statusCode(400).and().body("error", not(emptyOrNullString()));
     }
-
+@Step
     @Test
     public void resourceSortedByYears() {
+        installSpec(requestSpec(), responseSpec());
         JavaType type = TypeFactory.defaultInstance()
                 .constructParametricType(Resource.class, ColorStyle.class);
         Resource<ColorStyle> resource =
                 given()
                         .when()
-                        .get("https://reqres.in/api/unknown")
+                        .get("api/unknown")
                         .then()
-                        .assertThat().statusCode(200).and().body("data.year", not(hasItem(nullValue())))
+                        .assertThat().body("data.year", not(hasItem(nullValue())))
                         .extract().body().as(type);
         boolean isInOrder = Comparators.isInOrder(resource.getData(), Comparator.comparingLong(ColorStyle::getYear));
         Assert.assertTrue(isInOrder);
