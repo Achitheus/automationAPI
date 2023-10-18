@@ -15,7 +15,12 @@ public class TestDataProvider {
     }
 
     @DataProvider(name = "correct_log_ins")
-    public Object[] correctLogIns(){
+    public Object[] correctLogIns() {
         return new Object[]{new LogIn("eve.holt@reqres.in", "cityslicka")};
+    }
+
+    @DataProvider
+    public Object[] incorrect_log_ins() {
+        return new Object[]{new LogIn("eve.holt@reqres.in", "")};
     }
 }

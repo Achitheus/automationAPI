@@ -3,14 +3,14 @@ package in.reqres.dto;
 public class ColorStyle {
     private long id;
     private String name;
-    private long year;
+    private int year;
     private String color;
     private String pantone_value;
 
     public ColorStyle() {
     }
 
-    public ColorStyle(long id, String name, long year, String color, String pantone_value) {
+    public ColorStyle(long id, String name, int year, String color, String pantone_value) {
         this.id = id;
         this.name = name;
         this.year = year;
@@ -34,11 +34,11 @@ public class ColorStyle {
         this.name = name;
     }
 
-    public long getYear() {
+    public int getYear() {
         return year;
     }
 
-    public void setYear(long year) {
+    public void setYear(int year) {
         this.year = year;
     }
 
